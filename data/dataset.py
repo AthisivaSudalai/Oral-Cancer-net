@@ -1,5 +1,3 @@
-import os
-import random
 from pathlib import Path
 from PIL import Image
 
@@ -11,7 +9,7 @@ from config.config import (
     DATASET_ROOT, IMAGE_SIZE, CLASSES, CLASS_TO_IDX,
     AUG_HFLIP_P, AUG_VFLIP_P, AUG_ROTATION_DEG,
     AUG_COLOR_JITTER, AUG_NORMALIZE_MEAN, AUG_NORMALIZE_STD,
-    BATCH_SIZE, SEED
+    BATCH_SIZE
 )
 
 
