@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-DATASET_ROOT = Path("/kaggle/input/datasets")
+DATASET_ROOT = Path("/kaggle/input/datasets/ashenafifasilkebede/dataset")
 RESULTS_DIR  = Path("/kaggle/working/OralCancerNet/results")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
