@@ -46,9 +46,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device):
         correct += (preds == labels).sum().item()
         total += labels.size(0)
 
-    epoch_loss = running_loss / total
-    epoch_acc  = correct / total
-    return epoch_loss, epoch_acc
+    return running_loss / total, correct / total
 
 
 def evaluate(model, loader, criterion, device):
@@ -77,30 +75,18 @@ def run_experiment(model_name: str, magnification: str):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"  Device: {device}")
 
-    # Data
     loaders, loss_weights = get_dataloaders(magnification)
     loss_weights = loss_weights.to(device)
 
-    # Model
     model = get_model(model_name).to(device)
-
-    # Loss — weighted to handle class imbalance
     criterion = nn.CrossEntropyLoss(weight=loss_weights)
-
-    # Optimizer
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+    scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=5)
 
-    # Scheduler — reduce LR when val loss plateaus
-    # Patience of 5 means: if val loss doesn't improve for 5 epochs, LR is halved.
-    # This helps the model escape flat regions without manually tuning LR schedule.
-    scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=5, verbose=True)
-
-    # Checkpoint path
     ckpt_dir = RESULTS_DIR / model_name / magnification
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     best_ckpt = ckpt_dir / "best_model.pth"
 
-    # Training loop
     best_val_loss = float("inf")
     epochs_no_improve = 0
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
@@ -130,7 +116,6 @@ def run_experiment(model_name: str, magnification: str):
         history["val_loss"].append(val_loss)
         history["val_acc"].append(val_acc)
 
-        # Save best checkpoint
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_no_improve = 0
@@ -145,7 +130,7 @@ def run_experiment(model_name: str, magnification: str):
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= EARLY_STOPPING_PATIENCE:
-                print(f"\n  Early stopping at epoch {epoch} — no improvement for {EARLY_STOPPING_PATIENCE} epochs.")
+                print(f"\n  Early stopping at epoch {epoch}.")
                 break
 
     print(f"\n  Best val loss: {best_val_loss:.4f}")
